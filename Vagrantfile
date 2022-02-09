@@ -26,6 +26,11 @@ MACHINES = {
                         :size => 250, # Megabytes
                         :port => 4
                 }
+		:sata5 => {
+                        :dfile => './sata5.vdi',
+                        :size => 250, # Megabytes
+                        :port => 5
+                }
 
 	}
 
@@ -47,15 +52,15 @@ Vagrant.configure("2") do |config|
           box.vm.network "private_network", ip: boxconfig[:ip_addr]
 
           box.vm.provider :virtualbox do |vb|
-            	  vb.customize ["modifyvm", :id, "--memory", "1024"]
+                vb.customize ["modifyvm", :id, "--memory", "1024"]
                   needsController = false
-		  boxconfig[:disks].each do |dname, dconf|
-			  unless File.exist?(dconf[:dfile])
-				vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
+      boxconfig[:disks].each do |dname, dconf|
+        unless File.exist?(dconf[:dfile])
+        vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
                                 needsController =  true
                           end
 
-		  end
+      end
                   if needsController == true
                      vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
                      boxconfig[:disks].each do |dname, dconf|
@@ -63,13 +68,8 @@ Vagrant.configure("2") do |config|
                      end
                   end
           end
- 	  box.vm.provision "shell", inline: <<-SHELL
-	      mkdir -p ~root/.ssh
-              cp ~vagrant/.ssh/auth* ~root/.ssh
-	      yum install -y mdadm smartmontools hdparm gdisk
-  	  SHELL
-
-      end
+     config.vm.provision "shell", path: "kgndsn_hw2.sh"
+    end    
   end
+  
 end
-
